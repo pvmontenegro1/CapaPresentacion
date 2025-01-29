@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sisdb2025
+    ports:
+      - "3308:3306"  # Expone el puerto 3306 dentro del contenedor al puerto 3308 en tu máquina local
+    volumes:
+      - mysql-data:/var/lib/mysql  # Volumen persistente
+    networks:
+      - backend  # Conectar el servicio mysql a la red 'backend'
+
+  app:
+    build:
+      context: .  # Aquí se asume que tienes un Dockerfile para la aplicación Spring Boot
+    container_name: springboot-container
+    ports:
+      - "8002:8002"  # Exposición del puerto de la aplicación Spring Boot
+    depends_on:
+      - mysql  # La aplicación depende de MySQL
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sisdb2025  # Cambié el puerto a 3306
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    networks:
+      - backend  # Conectar el servicio app a la red 'backend'
+
+volumes:
+  mysql-data:
+    driver: local  # Volumen persistente en tu máquina
+
+networks:
+  backend:  # Definir la red llamada 'backend'
+    driver: bridge  # Usar la red bridge, que es la predeterminada
